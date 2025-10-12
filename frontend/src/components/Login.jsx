@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { authAPI } from '../services/api'
 import './Auth.css'
 
@@ -147,14 +148,17 @@ function Login({ onLoginSuccess, onSwitchToRegister }) {
                 <div className="auth-switch">
                     <p>
                         Don't have an account?{' '}
-                        <button 
-                            type="button" 
+                        <Link 
+                            to="/register"
                             className="link-button"
-                            onClick={onSwitchToRegister}
-                            disabled={loading}
+                            style={{
+                                color: '#667eea',
+                                textDecoration: 'none',
+                                fontWeight: '500'
+                            }}
                         >
                             Sign up here
-                        </button>
+                        </Link>
                     </p>
                 </div>
             </form>
