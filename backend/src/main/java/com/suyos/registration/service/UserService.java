@@ -35,6 +35,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class UserService {
+
+    /** Service for login attempt data access operations */
+    private final LoginAttemptService loginAttemptService;
     
     /** Repository for user data access operations */
     private final UserRepository userRepository;
@@ -47,12 +50,6 @@ public class UserService {
     
     /** JWT service for token operations */
     private final JwtService jwtService;
-    
-    /** Maximum allowed failed login attempts before account lock */
-    private static final int MAX_FAILED_ATTEMPTS = 5;
-    
-    /** Account lock duration in hours */
-    private static final int LOCK_DURATION_HOURS = 24;
 
     /**
      * Registers a new user account.
@@ -115,7 +112,7 @@ public class UserService {
         
         // Validate password
         if (!passwordEncoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
-            handleFailedLogin(user);
+            loginAttemptService.recordFailedAttempt(user);
             throw new RuntimeException("Invalid email or password");
         }
         
@@ -214,26 +211,6 @@ public class UserService {
         return userRepository.findByEmail(userEmail)
             .orElseThrow(() -> new RuntimeException("User not found"))
             .getId();
-    }
-
-    /**
-     * Handles failed login attempts and implements account locking.
-     * 
-     * Increments failed attempt counter and locks account if maximum
-     * attempts are exceeded.
-     * 
-     * @param user the user with failed login attempt
-     */
-    private void handleFailedLogin(User user) {
-        int attempts = user.getFailedLoginAttempts() + 1;
-        user.setFailedLoginAttempts(attempts);
-        
-        if (attempts >= MAX_FAILED_ATTEMPTS) {
-            user.setAccountLocked(true);
-            user.setLockedUntil(LocalDateTime.now().plusHours(LOCK_DURATION_HOURS));
-        }
-        
-        userRepository.save(user);
     }
 
 }
