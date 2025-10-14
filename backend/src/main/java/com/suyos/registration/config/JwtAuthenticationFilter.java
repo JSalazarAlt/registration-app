@@ -67,17 +67,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String userEmail;
         
-        // Check if Authorization header exists and starts with "Bearer "
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
         
-        // Extract JWT token from header
         jwt = authHeader.substring(7);
         
         try {
-            // Check if token is blacklisted
             if (tokenBlacklistService.isTokenBlacklisted(jwt)) {
                 log.debug("Blacklisted token attempted to be used");
                 filterChain.doFilter(request, response);
@@ -86,7 +83,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             userEmail = jwtService.extractUsername(jwt);
             
-            // Validate token and set authentication context
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
                 
@@ -102,10 +98,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (JwtException e) {
             log.debug("JWT validation failed: {}", e.getMessage());
-            // Continue without setting authentication - let security handle it
         } catch (Exception e) {
             log.error("Unexpected error during JWT processing: {}", e.getMessage());
-            // Continue without setting authentication
         }
         
         filterChain.doFilter(request, response);

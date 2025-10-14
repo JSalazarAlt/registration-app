@@ -20,8 +20,6 @@ import com.suyos.registration.model.User;
  * as a Spring bean into other components.
  * 
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
