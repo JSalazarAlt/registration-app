@@ -1,4 +1,4 @@
-# Registration JWT App v2.0.0
+# Registration App v2.0.0
 
 A full-stack authentication application built with React and Spring Boot, featuring user registration, login, JWT-based authentication, and OAuth2 integration.
 
