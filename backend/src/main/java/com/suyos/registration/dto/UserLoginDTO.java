@@ -15,8 +15,6 @@ import lombok.NoArgsConstructor;
  * user authentication and session establishment.
  * 
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @Data
 @NoArgsConstructor
@@ -24,22 +22,12 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserLoginDTO {
 
-    /**
-     * User's email address for account creation and login.
-     * 
-     * Must be a valid email format and will be used as the primary
-     * identifier for authentication and communication.
-     */
+    /** User's email address for authentication */
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
 
-     /**
-     * User's password for account security.
-     * 
-     * Must be at least 8 characters long for security purposes.
-     * Will be hashed before storage in the database.
-     */
+    /** User's password for authentication */
     @NotBlank(message = "Password is required")
     private String password;
 

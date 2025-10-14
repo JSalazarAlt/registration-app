@@ -19,8 +19,6 @@ import lombok.RequiredArgsConstructor;
  * Integrates with Spring Security's authentication mechanism.
  * 
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @Service
 @RequiredArgsConstructor
@@ -44,7 +42,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
                 .password(user.getPassword())
-                .authorities(new ArrayList<>()) // No roles for now
+                .authorities(new ArrayList<>())
                 .accountExpired(false)
                 .accountLocked(user.getAccountLocked())
                 .credentialsExpired(false)

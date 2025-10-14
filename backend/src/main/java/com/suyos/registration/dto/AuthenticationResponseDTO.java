@@ -12,8 +12,6 @@ import lombok.NoArgsConstructor;
  * with a JWT access token for subsequent API requests and basic user profile information.
  * 
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @Data
 @NoArgsConstructor
@@ -21,34 +19,17 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AuthenticationResponseDTO {
     
-    /**
-     * JWT access token for API authentication.
-     * 
-     * This token should be included in the Authorization header
-     * as "Bearer {token}" for all subsequent API requests.
-     */
+    /** JWT access token for API authentication */
     private String accessToken;
     
-    /**
-     * Token type identifier.
-     * 
-     * Always "Bearer" for JWT tokens, indicating the authentication scheme.
-     */
+    /** Token type identifier */
     @Builder.Default
     private String tokenType = "Bearer";
     
-    /**
-     * Token expiration time in seconds.
-     * 
-     * Indicates how long the token remains valid from the time of issuance.
-     */
+    /** Token expiration time in seconds */
     private Long expiresIn;
     
-    /**
-     * User profile information.
-     * 
-     * Contains basic user details for client-side display and personalization.
-     */
+    /** User profile information */
     private UserProfileDTO user;
 
 }

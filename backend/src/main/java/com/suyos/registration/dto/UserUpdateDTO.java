@@ -15,8 +15,6 @@ import lombok.NoArgsConstructor;
  * allowed to modify, excluding sensitive security-related data.
  * 
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @Data
 @NoArgsConstructor
@@ -24,13 +22,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserUpdateDTO {
     
-    /**
-     * User's chosen username for display purposes.
-     * 
-     * Must be unique across the system and between 3-20 characters.
-     * Only alphanumeric characters are allowed.
-     * Used for public identification within the application.
-     */
+    /** User's chosen username for display purposes */
     @Size(min = 3, max = 20, message = "Username must be 3-20 characters")
     @Pattern(
         regexp = "^[a-zA-Z0-9]+$", 
@@ -38,63 +30,34 @@ public class UserUpdateDTO {
     )
     private String username;
     
-    /**
-     * User's first name for personalization.
-     * 
-     * Only alphabetic characters and spaces are allowed.
-     * Used for greeting and personalizing the user experience
-     * throughout the application interface.
-     */
+    /** User's first name for personalization */
     @Pattern(
         regexp = "^[a-zA-Z ]+$", 
         message = "First name must contain only alphabetic characters and spaces"
     )
     private String firstName;
     
-    /**
-     * User's last name for identification.
-     * 
-     * Only alphabetic characters and spaces are allowed.
-     * Combined with first name for full user identification
-     * and formal communication purposes.
-     */
+    /** User's last name for identification */
     @Pattern(
         regexp = "^[a-zA-Z ]+$", 
         message = "Last name must contain only alphabetic characters and spaces"
     )
     private String lastName;
     
-    /**
-     * User's phone number for contact purposes.
-     * 
-     * Optional field that may be used for account recovery,
-     * two-factor authentication, or important notifications.
-     */
+    /** User's phone number for contact purposes */
     @Pattern(
         regexp = "^$|^\\+?[0-9]{7,15}$",
         message = "Phone must be 7 to 15 digits, with optional + for country code"
     )
     private String phone;
     
-    /**
-     * URL to the user's profile picture.
-     * 
-     * Optional field for displaying user avatar in the application interface.
-     */
+    /** URL to the user's profile picture */
     private String profilePictureUrl;
     
-    /**
-     * User's preferred language locale.
-     * 
-     * Used for internationalization to display content in user's language.
-     */
+    /** User's preferred language locale */
     private String locale;
     
-    /**
-     * User's timezone preference.
-     * 
-     * Used for displaying dates and times in the user's local timezone.
-     */
+    /** User's timezone preference */
     private String timezone;
     
 }

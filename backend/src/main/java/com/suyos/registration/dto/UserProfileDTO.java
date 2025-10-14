@@ -15,8 +15,6 @@ import lombok.NoArgsConstructor;
  * safely exposed in API responses without sensitive security data.
  * 
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @Data
 @NoArgsConstructor
@@ -24,81 +22,37 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserProfileDTO {
 
-    /**
-     * User's unique identifier.
-     * 
-     * Primary key used for API operations and user identification.
-     */
+    /** User's unique identifier */
     private Long id;
 
-    /**
-     * User's email address.
-     * 
-     * Primary contact method and login identifier for the user account.
-     */
+    /** User's email address */
     private String email;
 
-    /**
-     * User's chosen username for display purposes.
-     * 
-     * Unique identifier that can be shown publicly in the application interface.
-     */
+    /** User's chosen username for display purposes */
     private String username;
 
-    /**
-     * User's first name for personalization.
-     * 
-     * Used for greeting and personalizing the user experience.
-     */
+    /** User's first name for personalization */
     private String firstName;
 
-    /**
-     * User's last name for identification.
-     * 
-     * Combined with first name for full user identification in the interface.
-     */
+    /** User's last name for identification */
     private String lastName;
 
-    /**
-     * User's phone number for contact purposes.
-     * 
-     * Optional field that may be used for notifications or account recovery.
-     */
+    /** User's phone number for contact purposes */
     private String phone;
 
-    /**
-     * URL to the user's profile picture.
-     * 
-     * Optional field for displaying user avatar in the application interface.
-     */
+    /** URL to the user's profile picture */
     private String profilePictureUrl;
 
-    /**
-     * User's preferred language locale.
-     * 
-     * Used for internationalization to display content in user's language.
-     */
+    /** User's preferred language locale */
     private String locale;
 
-    /**
-     * User's timezone preference.
-     * 
-     * Used for displaying dates and times in the user's local timezone.
-     */
+    /** User's timezone preference */
     private String timezone;
 
-    /**
-     * Timestamp of the user's last successful login.
-     * 
-     * Used for displaying account activity information to the user.
-     */
+    /** Timestamp of the user's last successful login */
     private LocalDateTime lastLoginAt;
 
-    /**
-     * Timestamp when the user account was created.
-     * 
-     * Used for displaying "member since" information in the user profile.
-     */
+    /** Timestamp when the user account was created */
     private LocalDateTime createdAt;
 
 }

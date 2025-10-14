@@ -32,8 +32,6 @@ public class UserService {
     /** Mapper for converting between entities and DTOs */
     private final UserMapper userMapper;
 
-
-
     /**
      * Retrieves a user's profile information.
      * 
@@ -64,7 +62,6 @@ public class UserService {
         User existingUser = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
         
-        // Update only allowed fields
         if (userUpdateDTO.getUsername() != null) {
             existingUser.setUsername(userUpdateDTO.getUsername());
         }

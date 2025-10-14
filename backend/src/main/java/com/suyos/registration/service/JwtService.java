@@ -210,17 +210,14 @@ public class JwtService {
      */
     private javax.crypto.SecretKey getSignInKey() {
         try {
-            // Try to decode as base64 first, fallback to direct bytes
             byte[] keyBytes;
             try {
                 keyBytes = Base64.getDecoder().decode(secretKey);
             } catch (IllegalArgumentException e) {
-                // If not base64, use direct bytes (for backward compatibility)
                 keyBytes = secretKey.getBytes();
                 log.warn("JWT secret is not base64 encoded. Consider using base64 encoding for better security.");
             }
             
-            // Ensure minimum key length for security
             if (keyBytes.length < 32) {
                 log.warn("JWT secret key is shorter than recommended 256 bits (32 bytes)");
             }

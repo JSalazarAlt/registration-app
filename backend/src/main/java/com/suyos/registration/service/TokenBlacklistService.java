@@ -37,7 +37,6 @@ public class TokenBlacklistService {
      */
     public void blacklistToken(String token) {
         try {
-            // Only blacklist if token is not already expired
             Date expiration = jwtService.extractExpiration(token);
             if (expiration.after(new Date())) {
                 blacklistedTokens.add(token);
@@ -45,7 +44,6 @@ public class TokenBlacklistService {
             }
         } catch (Exception e) {
             log.warn("Failed to blacklist token: {}", e.getMessage());
-            // Still add to blacklist even if we can't parse expiration
             blacklistedTokens.add(token);
         }
     }
@@ -71,7 +69,6 @@ public class TokenBlacklistService {
                 Date expiration = jwtService.extractExpiration(token);
                 return expiration.before(now);
             } catch (Exception e) {
-                // If we can't parse the token, keep it blacklisted for safety
                 return false;
             }
         });
