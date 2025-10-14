@@ -54,14 +54,9 @@ public class AuthController {
         @ApiResponse(responseCode = "201", description = "User registered successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid registration data or email already exists")
     })
-    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
-        try {
-            UserProfileDTO userProfile = authService.registerUser(registrationDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(userProfile);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Registration failed: " + e.getMessage());
-        }
+    public ResponseEntity<UserProfileDTO> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
+        UserProfileDTO userProfile = authService.registerUser(registrationDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userProfile);
     }
 
     /**
@@ -76,14 +71,9 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Login successful, JWT token returned"),
         @ApiResponse(responseCode = "401", description = "Invalid credentials or account locked")
     })
-    public ResponseEntity<?> loginUser(@Valid @RequestBody UserLoginDTO loginDTO) {
-        try {
-            AuthenticationResponseDTO authResponse = authService.authenticateUser(loginDTO);
-            return ResponseEntity.ok(authResponse);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body("Authentication failed: " + e.getMessage());
-        }
+    public ResponseEntity<AuthenticationResponseDTO> loginUser(@Valid @RequestBody UserLoginDTO loginDTO) {
+        AuthenticationResponseDTO authResponse = authService.authenticateUser(loginDTO);
+        return ResponseEntity.ok(authResponse);
     }
 
     /**
@@ -98,17 +88,13 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Logout successful"),
         @ApiResponse(responseCode = "400", description = "Invalid or missing token")
     })
-    public ResponseEntity<?> logoutUser(jakarta.servlet.http.HttpServletRequest request) {
-        try {
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-                tokenBlacklistService.blacklistToken(token);
-                return ResponseEntity.ok("Logout successful");
-            }
-            return ResponseEntity.badRequest().body("No valid token found");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Logout failed: " + e.getMessage());
+    public ResponseEntity<String> logoutUser(jakarta.servlet.http.HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            tokenBlacklistService.blacklistToken(token);
+            return ResponseEntity.ok("Logout successful");
         }
+        return ResponseEntity.badRequest().body("No valid token found");
     }
 }

@@ -1,6 +1,5 @@
 package com.suyos.registration.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,14 +57,9 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "User not found"),
         @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token")
     })
-    public ResponseEntity<?> getUserProfile(@Parameter(description = "User ID") @PathVariable Long userId) {
-        try {
-            UserProfileDTO userProfile = userService.getUserProfile(userId);
-            return ResponseEntity.ok(userProfile);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("User not found: " + e.getMessage());
-        }
+    public ResponseEntity<UserProfileDTO> getUserProfile(@Parameter(description = "User ID") @PathVariable Long userId) {
+        UserProfileDTO userProfile = userService.getUserProfile(userId);
+        return ResponseEntity.ok(userProfile);
     }
 
     /**
@@ -87,15 +81,10 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "User not found"),
         @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token")
     })
-    public ResponseEntity<?> updateUserProfile(@Parameter(description = "User ID") @PathVariable Long userId, 
+    public ResponseEntity<UserProfileDTO> updateUserProfile(@Parameter(description = "User ID") @PathVariable Long userId, 
                                              @Valid @RequestBody UserUpdateDTO updateDTO) {
-        try {
-            UserProfileDTO updatedProfile = userService.updateUserProfile(userId, updateDTO);
-            return ResponseEntity.ok(updatedProfile);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Profile update failed: " + e.getMessage());
-        }
+        UserProfileDTO updatedProfile = userService.updateUserProfile(userId, updateDTO);
+        return ResponseEntity.ok(updatedProfile);
     }
 
 }
