@@ -1,11 +1,12 @@
-# Sign Up - Login JWT App
+# Registration JWT App v2.0.0
 
-A full-stack authentication application built with React and Spring Boot, featuring user registration, login, and JWT-based authentication.
+A full-stack authentication application built with React and Spring Boot, featuring user registration, login, JWT-based authentication, and OAuth2 integration.
 
 ## 🚀 Features
 
 - **User Registration** - Create new accounts with comprehensive validation
 - **User Login** - Secure authentication with JWT tokens
+- **OAuth2 Authentication** - Google OAuth2 integration for seamless login
 - **Profile Management** - View and edit user profile information
 - **JWT Authentication** - Stateless authentication using JSON Web Tokens
 - **Professional Navigation** - React Router with URL-based routing
@@ -25,6 +26,7 @@ A full-stack authentication application built with React and Spring Boot, featur
 ### Backend
 - **Spring Boot** - Java framework for REST APIs
 - **Spring Security** - Authentication and authorization
+- **Spring OAuth2** - Google OAuth2 integration
 - **Spring Data JPA** - Database operations and ORM
 - **JWT (JSON Web Tokens)** - Stateless authentication
 - **MySQL** - Relational database for user data
@@ -70,7 +72,9 @@ CREATE TABLE users (
     last_login_at DATETIME,
     failed_login_attempts INT NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    oauth2_provider VARCHAR(50),
+    oauth2_provider_id VARCHAR(255)
 );
 ```
 
@@ -91,8 +95,11 @@ npm run dev
 ## 🌐 API Endpoints
 
 ### Authentication
-- `POST /api/users/register` - Register new user
-- `POST /api/users/login` - User login
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/logout` - User logout
+- `GET /oauth2/authorize/google` - Google OAuth2 login
+- `GET /oauth2/callback/google` - Google OAuth2 callback
 - `GET /api/users/{id}/profile` - Get user profile
 - `PUT /api/users/{id}/profile` - Update user profile
 
@@ -107,7 +114,7 @@ npm run dev
 ## 📱 Application Flow
 
 1. **Registration** - Users create accounts with comprehensive validation
-2. **Login** - Authentication with JWT token generation
+2. **Login** - Authentication with JWT token generation or Google OAuth2
 3. **Home Page** - Welcome dashboard for authenticated users
 4. **Profile Management** - View and edit user information with real-time updates
 5. **Navigation** - Seamless routing between pages with React Router
