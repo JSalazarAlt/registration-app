@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { authAPI } from '../services/api'
+import { userAPI } from '../services/api'
 
 /**
  * Profile component - User profile page with editing capabilities
@@ -27,7 +27,7 @@ const Profile = ({ user, onUserUpdate }) => {
         setError('')
         
         try {
-            const updatedUser = await authAPI.updateProfile(user.id, formData)
+            const updatedUser = await userAPI.updateProfile(user.id, formData)
             onUserUpdate(updatedUser)
             setIsEditing(false)
         } catch (error) {

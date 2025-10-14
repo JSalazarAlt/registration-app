@@ -6,7 +6,6 @@ import axios from 'axios';
  * 
  * @constant {string}
  * @author Joel Salazar
- * @since 1.0
  */
 const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -57,7 +56,6 @@ apiClient.interceptors.response.use(
  * 
  * @namespace authAPI
  * @author Joel Salazar
- * @since 1.0
  */
 export const authAPI = {
     /**
@@ -68,10 +66,9 @@ export const authAPI = {
      * @param {string} credentials.email - User's email address
      * @param {string} credentials.password - User's password
      * @returns {Promise<Object>} Promise resolving to authentication response with token and user info
-     * @since 1.0
      */
     login: async (credentials) => {
-        const response = await apiClient.post('/users/login', credentials);
+        const response = await apiClient.post('/v1/auth/login', credentials);
         return response.data;
     },
 
@@ -88,10 +85,9 @@ export const authAPI = {
      * @param {boolean} userData.termsAccepted - Terms acceptance flag
      * @param {boolean} userData.privacyPolicyAccepted - Privacy policy acceptance flag
      * @returns {Promise<Object>} Promise resolving to created user profile
-     * @since 1.0
      */
     register: async (userData) => {
-        const response = await apiClient.post('/users/register', userData);
+        const response = await apiClient.post('/v1/auth/register', userData);
         return response.data;
     },
 
@@ -100,7 +96,6 @@ export const authAPI = {
      * 
      * @function setAuthToken
      * @param {string} token - JWT token to set
-     * @since 1.0
      */
     setAuthToken: (token) => {
         if (token) {
@@ -111,14 +106,55 @@ export const authAPI = {
     },
 
     /**
-     * Logs out the current user by clearing stored authentication data.
+     * Logs out the current user by invalidating token and clearing stored data.
      * 
      * @function logout
-     * @since 1.0
      */
-    logout: () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        delete apiClient.defaults.headers.common['Authorization'];
+    logout: async () => {
+        try {
+            // Call backend logout to blacklist token
+            await apiClient.post('/v1/auth/logout');
+        } catch (error) {
+            // Continue with local logout even if backend call fails
+            console.warn('Backend logout failed:', error.message);
+        } finally {
+            // Always clear local storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            delete apiClient.defaults.headers.common['Authorization'];
+        }
+    }
+};
+
+/**
+ * User profile API service for profile management operations.
+ * 
+ * @namespace userAPI
+ * @author Joel Salazar
+ */
+export const userAPI = {
+    /**
+     * Retrieves user profile information.
+     * 
+     * @function getProfile
+     * @param {number} userId - User's unique identifier
+     * @returns {Promise<Object>} Promise resolving to user profile data
+     */
+    getProfile: async (userId) => {
+        const response = await apiClient.get(`/v1/users/${userId}/profile`);
+        return response.data;
+    },
+
+    /**
+     * Updates user profile information.
+     * 
+     * @function updateProfile
+     * @param {number} userId - User's unique identifier
+     * @param {Object} profileData - Updated profile information
+     * @returns {Promise<Object>} Promise resolving to updated user profile
+     */
+    updateProfile: async (userId, profileData) => {
+        const response = await apiClient.put(`/v1/users/${userId}/profile`, profileData);
+        return response.data;
     }
 };

@@ -32,27 +32,36 @@ public class UserUpdateDTO {
      * Used for public identification within the application.
      */
     @Size(min = 3, max = 20, message = "Username must be 3-20 characters")
-    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "Username must contain only alphanumeric characters")
+    @Pattern(
+        regexp = "^[a-zA-Z0-9]+$", 
+        message = "Username must contain only alphanumeric characters"
+    )
     private String username;
     
     /**
      * User's first name for personalization.
      * 
-     * Only alphabetic characters are allowed.
+     * Only alphabetic characters and spaces are allowed.
      * Used for greeting and personalizing the user experience
      * throughout the application interface.
      */
-    @Pattern(regexp = "^[a-zA-Z]+$", message = "First name must contain only alphabetic characters")
+    @Pattern(
+        regexp = "^[a-zA-Z ]+$", 
+        message = "First name must contain only alphabetic characters and spaces"
+    )
     private String firstName;
     
     /**
      * User's last name for identification.
      * 
-     * Only alphabetic characters are allowed.
+     * Only alphabetic characters and spaces are allowed.
      * Combined with first name for full user identification
      * and formal communication purposes.
      */
-    @Pattern(regexp = "^[a-zA-Z]+$", message = "Last name must contain only alphabetic characters")
+    @Pattern(
+        regexp = "^[a-zA-Z ]+$", 
+        message = "Last name must contain only alphabetic characters and spaces"
+    )
     private String lastName;
     
     /**
@@ -61,6 +70,10 @@ public class UserUpdateDTO {
      * Optional field that may be used for account recovery,
      * two-factor authentication, or important notifications.
      */
+    @Pattern(
+        regexp = "^$|^\\+?[0-9]{7,15}$",
+        message = "Phone must be 7 to 15 digits, with optional + for country code"
+    )
     private String phone;
     
     /**

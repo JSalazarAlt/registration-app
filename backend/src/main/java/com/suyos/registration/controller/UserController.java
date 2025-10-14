@@ -4,16 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suyos.registration.dto.AuthenticationResponseDTO;
-import com.suyos.registration.dto.UserLoginDTO;
 import com.suyos.registration.dto.UserProfileDTO;
-import com.suyos.registration.dto.UserRegistrationDTO;
 import com.suyos.registration.dto.UserUpdateDTO;
 import com.suyos.registration.service.UserService;
 
@@ -27,76 +23,23 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 /**
- * REST controller for user management operations.
+ * REST controller for user profile management operations.
  * 
- * Provides endpoints for user authentication, registration, and profile management.
+ * Provides endpoints for user profile retrieval and updates.
  * Handles HTTP requests and delegates business logic to the UserService layer.
  * 
- * All endpoints return appropriate HTTP status codes and error messages
- * for client applications to handle authentication and user management flows.
- * 
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@Tag(name = "Users", description = "User authentication and profile management")
+@Tag(name = "Users", description = "User profile management")
 public class UserController {
     
     /** Service layer for user business logic */
     private final UserService userService;
 
-    /**
-     * Registers a new user account.
-     * 
-     * Creates a new user with the provided registration information.
-     * Validates input data and returns the created user's profile.
-     * 
-     * @param registrationDTO the user registration data
-     * @return ResponseEntity containing the created user's profile or error message
-     */
-    @PostMapping("/register")
-    @Operation(summary = "Register new user", description = "Creates a new user account with the provided information")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "User registered successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid registration data or email already exists")
-    })
-    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
-        try {
-            UserProfileDTO userProfile = userService.registerUser(registrationDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(userProfile);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Registration failed: " + e.getMessage());
-        }
-    }
 
-    /**
-     * Authenticates a user login attempt and returns JWT token.
-     * 
-     * Validates user credentials and returns JWT token with user profile on success.
-     * Handles account locking and failed login attempts.
-     * 
-     * @param loginDTO the user login credentials
-     * @return ResponseEntity containing JWT token and user profile or error message
-     */
-    @PostMapping("/login")
-    @Operation(summary = "User login", description = "Authenticates user credentials and returns JWT token")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Login successful, JWT token returned"),
-        @ApiResponse(responseCode = "401", description = "Invalid credentials or account locked")
-    })
-    public ResponseEntity<?> loginUser(@Valid @RequestBody UserLoginDTO loginDTO) {
-        try {
-            AuthenticationResponseDTO authResponse = userService.authenticateUser(loginDTO);
-            return ResponseEntity.ok(authResponse);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body("Authentication failed: " + e.getMessage());
-        }
-    }
 
     /**
      * Retrieves a user's profile information.

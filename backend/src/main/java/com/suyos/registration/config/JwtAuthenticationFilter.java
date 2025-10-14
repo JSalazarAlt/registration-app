@@ -12,22 +12,38 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.suyos.registration.service.JwtService;
+import com.suyos.registration.service.TokenBlacklistService;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+/**
+ * JWT authentication filter for processing JWT tokens in HTTP requests.
+ * 
+ * Intercepts incoming requests to extract and validate JWT tokens from
+ * Authorization headers. Sets Spring Security context for valid tokens
+ * and handles token blacklisting for logout functionality.
+ * 
+ * @author Joel Salazar
+ */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    /** Service for JWT token operations */
+    /** Service for JWT token generation, validation, and extraction operations */
     private final JwtService jwtService;
     
-    /** Service for loading user details */
+    /** Service for loading user details from the database */
     private final UserDetailsService userDetailsService;
+    
+    /** Service for managing blacklisted JWT tokens */
+    private final TokenBlacklistService tokenBlacklistService;
 
     /**
      * Processes each HTTP request to extract and validate JWT tokens.
@@ -59,21 +75,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         // Extract JWT token from header
         jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(jwt);
         
-        // Validate token and set authentication context
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-            
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+        try {
+            // Check if token is blacklisted
+            if (tokenBlacklistService.isTokenBlacklisted(jwt)) {
+                log.debug("Blacklisted token attempted to be used");
+                filterChain.doFilter(request, response);
+                return;
             }
+            
+            userEmail = jwtService.extractUsername(jwt);
+            
+            // Validate token and set authentication context
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+                
+                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
+        } catch (JwtException e) {
+            log.debug("JWT validation failed: {}", e.getMessage());
+            // Continue without setting authentication - let security handle it
+        } catch (Exception e) {
+            log.error("Unexpected error during JWT processing: {}", e.getMessage());
+            // Continue without setting authentication
         }
         
         filterChain.doFilter(request, response);

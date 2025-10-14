@@ -20,8 +20,6 @@ import lombok.RequiredArgsConstructor;
  * even when authentication fails.
  * 
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @Service
 @RequiredArgsConstructor

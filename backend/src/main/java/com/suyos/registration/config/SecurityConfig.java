@@ -3,13 +3,10 @@ package com.suyos.registration.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,16 +17,22 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Spring Security configuration for JWT-based authentication.
+ * 
+ * Configures security filter chains, CORS settings, authentication providers,
+ * and password encoding for the application. Implements stateless JWT authentication
+ * with proper endpoint security and cross-origin resource sharing.
+ * 
+ * @author Joel Salazar
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     
-    /** JWT authentication filter */
+    /** JWT authentication filter for processing JWT tokens in requests */
     private final JwtAuthenticationFilter jwtAuthFilter;
-    
-    /** Custom user details service */
-    private final UserDetailsService userDetailsService;
 
     /**
      * Configures the security filter chain.
@@ -41,14 +44,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            // Disabling CSRF for REST APIs
             .csrf(csrf -> csrf.disable())
+            // Enabling CORS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/register", "/api/users/login").permitAll()
+                // Public endpoints
+                .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login").permitAll()
+                // Logout requires authentication
+                .requestMatchers("/api/v1/auth/logout").authenticated()
                 .anyRequest().authenticated()
             )
+            // No sessions because JWT is stateless
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider())
+            // JWT filter runs first
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -63,28 +72,16 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:5173"); // React dev server
-        configuration.addAllowedMethod("*");
-        configuration.addAllowedHeader("*");
-        configuration.setAllowCredentials(true);
+        configuration.addAllowedMethod("*"); // Allow all HTTP methods
+        configuration.addAllowedHeader("*"); // Allow all headers
+        configuration.setAllowCredentials(true); // Allow cookies/auth headers
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
-    /**
-     * Configures the authentication provider.
-     * 
-     * @return the configured authentication provider
-     */
-    @Bean
-    @SuppressWarnings("deprecation")
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
-    }
+
 
     /**
      * Configures the authentication manager.

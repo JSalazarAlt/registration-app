@@ -18,8 +18,6 @@ import io.swagger.v3.oas.models.Components;
  * Provides comprehensive API documentation accessible via Swagger UI.
  * 
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @Configuration
 public class SwaggerConfig {

@@ -1,5 +1,6 @@
 package com.suyos.registration.service;
 
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +13,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for JWT token generation, validation, and extraction operations.
@@ -21,10 +27,9 @@ import io.jsonwebtoken.Jwts;
  * and claims extraction. Uses HMAC-SHA256 algorithm for token signing.
  * 
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @Service
+@Slf4j
 public class JwtService {
 
     /** JWT secret key from application properties */
@@ -40,9 +45,24 @@ public class JwtService {
      * 
      * @param token the JWT token
      * @return the username (subject) from the token
+     * @throws JwtException if token is invalid or expired
      */
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        try {
+            return extractClaim(token, Claims::getSubject);
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT token expired: {}", e.getMessage());
+            throw e;
+        } catch (MalformedJwtException e) {
+            log.warn("Malformed JWT token: {}", e.getMessage());
+            throw e;
+        } catch (SignatureException e) {
+            log.warn("JWT signature validation failed: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error extracting username from JWT: {}", e.getMessage());
+            throw new JwtException("Invalid JWT token", e);
+        }
     }
 
     /**
@@ -62,10 +82,18 @@ public class JwtService {
      * @param token the JWT token
      * @param claimsResolver function to extract the specific claim
      * @return the extracted claim
+     * @throws JwtException if token is invalid
      */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        try {
+            final Claims claims = extractAllClaims(token);
+            return claimsResolver.apply(claims);
+        } catch (JwtException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error extracting claim from JWT: {}", e.getMessage());
+            throw new JwtException("Failed to extract claim from token", e);
+        }
     }
 
     /**
@@ -106,8 +134,16 @@ public class JwtService {
      * @return true if token is valid, false otherwise
      */
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        try {
+            final String username = extractUsername(token);
+            return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        } catch (JwtException e) {
+            log.warn("Token validation failed: {}", e.getMessage());
+            return false;
+        } catch (Exception e) {
+            log.error("Unexpected error during token validation: {}", e.getMessage());
+            return false;
+        }
     }
 
     /**
@@ -125,13 +161,28 @@ public class JwtService {
      * 
      * @param token the JWT token
      * @return all claims from the token
+     * @throws JwtException if token parsing fails
      */
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSignInKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            return Jwts.parser()
+                    .verifyWith(getSignInKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException e) {
+            log.debug("JWT token expired");
+            throw e;
+        } catch (MalformedJwtException e) {
+            log.debug("Malformed JWT token");
+            throw e;
+        } catch (SignatureException e) {
+            log.debug("JWT signature validation failed");
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to parse JWT token: {}", e.getMessage());
+            throw new JwtException("Token parsing failed", e);
+        }
     }
 
     /**
@@ -158,8 +209,27 @@ public class JwtService {
      * @return the signing key
      */
     private javax.crypto.SecretKey getSignInKey() {
-        byte[] keyBytes = secretKey.getBytes();
-        return new SecretKeySpec(keyBytes, "HmacSHA256");
+        try {
+            // Try to decode as base64 first, fallback to direct bytes
+            byte[] keyBytes;
+            try {
+                keyBytes = Base64.getDecoder().decode(secretKey);
+            } catch (IllegalArgumentException e) {
+                // If not base64, use direct bytes (for backward compatibility)
+                keyBytes = secretKey.getBytes();
+                log.warn("JWT secret is not base64 encoded. Consider using base64 encoding for better security.");
+            }
+            
+            // Ensure minimum key length for security
+            if (keyBytes.length < 32) {
+                log.warn("JWT secret key is shorter than recommended 256 bits (32 bytes)");
+            }
+            
+            return new SecretKeySpec(keyBytes, "HmacSHA256");
+        } catch (Exception e) {
+            log.error("Failed to create signing key: {}", e.getMessage());
+            throw new RuntimeException("JWT configuration error", e);
+        }
     }
     
 }

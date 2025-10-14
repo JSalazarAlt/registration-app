@@ -20,8 +20,6 @@ import lombok.NoArgsConstructor;
  * all the necessary fields to track individual user information.
  * 
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @Entity
 @Table(name = "users")

@@ -25,6 +25,13 @@ import lombok.NoArgsConstructor;
 public class UserProfileDTO {
 
     /**
+     * User's unique identifier.
+     * 
+     * Primary key used for API operations and user identification.
+     */
+    private Long id;
+
+    /**
      * User's email address.
      * 
      * Primary contact method and login identifier for the user account.
