@@ -118,4 +118,73 @@ public class AuthService {
                 .user(userMapper.toProfileDTO(user))
                 .build();
     }
+
+    /**
+     * Processes Google OAuth2 authentication and creates or updates user account.
+     * 
+     * Handles Google OAuth2 user information. Creates new user if not exists,
+     * or updates existing OAuth2 user. Generates JWT token for API access.
+     * 
+     * @param email user's email from Google
+     * @param name user's full name from Google
+     * @param providerId unique identifier from Google
+     * @return authentication response with JWT token and user profile
+     */
+    public AuthenticationResponseDTO processGoogleOAuth2User(String email, String name, String providerId) {
+        // Find existing Google OAuth2 user or create new one
+        User user = userRepository.findByOauth2ProviderAndOauth2ProviderId("google", providerId)
+                .orElseGet(() -> createGoogleOAuth2User(email, name, providerId));
+        
+        // Update last login time
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
+        
+        // Generate JWT token (same as traditional authentication)
+        var userDetails = org.springframework.security.core.userdetails.User.builder()
+                .username(user.getEmail())
+                .password(user.getPassword())
+                .authorities(new java.util.ArrayList<>())
+                .build();
+        
+        String jwtToken = jwtService.generateToken(userDetails);
+        
+        return AuthenticationResponseDTO.builder()
+                .accessToken(jwtToken)
+                .expiresIn(jwtService.getExpirationTime())
+                .user(userMapper.toProfileDTO(user))
+                .build();
+    }
+
+    /**
+     * Creates a new user from Google OAuth2 provider information.
+     * 
+     * @param email user's email from Google
+     * @param name user's full name from Google
+     * @param providerId unique identifier from Google
+     * @return newly created user entity
+     */
+    private User createGoogleOAuth2User(String email, String name, String providerId) {
+        String[] nameParts = name != null ? name.split(" ", 2) : new String[]{"User", ""};
+        String firstName = nameParts[0];
+        String lastName = nameParts.length > 1 ? nameParts[1] : "";
+        
+        User user = User.builder()
+                .email(email)
+                .username(email)
+                .firstName(firstName)
+                .lastName(lastName)
+                .password("") // No password for OAuth2 users
+                .oauth2Provider("google")
+                .oauth2ProviderId(providerId)
+                .emailVerified(true) // Google emails are pre-verified
+                .accountEnabled(true)
+                .accountLocked(false)
+                .failedLoginAttempts(0)
+                .termsAcceptedAt(LocalDateTime.now())
+                .privacyPolicyAcceptedAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
+                .build();
+        
+        return userRepository.save(user);
+    }
 }

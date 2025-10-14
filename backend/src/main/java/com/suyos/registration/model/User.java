@@ -124,4 +124,12 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    /** OAuth2 provider name (google) - null for traditional login */
+    @Column(name = "oauth2_provider")
+    private String oauth2Provider;
+
+    /** Unique identifier from OAuth2 provider - null for traditional login */
+    @Column(name = "oauth2_provider_id")
+    private String oauth2ProviderId;
+
 }

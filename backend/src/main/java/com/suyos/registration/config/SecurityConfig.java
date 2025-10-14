@@ -18,11 +18,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Spring Security configuration for JWT-based authentication.
+ * Spring Security configuration for hybrid JWT and OAuth2 authentication.
  * 
  * Configures security filter chains, CORS settings, authentication providers,
- * and password encoding for the application. Implements stateless JWT authentication
- * with proper endpoint security and cross-origin resource sharing.
+ * and password encoding for the application. Supports both traditional JWT authentication
+ * and Google OAuth2 authentication.
  * 
  * @author Joel Salazar
  */
@@ -33,9 +33,14 @@ public class SecurityConfig {
     
     /** JWT authentication filter for processing JWT tokens in requests */
     private final JwtAuthenticationFilter jwtAuthFilter;
+    
+    /** OAuth2 success handler for processing successful Google OAuth2 authentication */
+    private final OAuth2AuthenticationSuccessHandler oauth2SuccessHandler;
 
     /**
-     * Configures the security filter chain.
+     * Configures the security filter chain for hybrid authentication.
+     * 
+     * Supports both traditional JWT authentication and Google OAuth2 authentication.
      * 
      * @param http the HttpSecurity to configure
      * @return the configured SecurityFilterChain
@@ -49,9 +54,16 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login").permitAll()
                 .requestMatchers("/api/v1/auth/logout").authenticated()
+                .requestMatchers("/oauth2/**").permitAll()
                 .anyRequest().authenticated())
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .oauth2Login(oauth2 -> oauth2
+                .authorizationEndpoint(authorization -> authorization
+                    .baseUri("/oauth2/authorize"))
+                .redirectionEndpoint(redirection -> redirection
+                    .baseUri("/oauth2/callback/*"))
+                .successHandler(oauth2SuccessHandler))
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
 

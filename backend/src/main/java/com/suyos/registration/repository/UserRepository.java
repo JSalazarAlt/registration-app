@@ -115,4 +115,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("UPDATE User u SET u.accountLocked = false, u.lockedUntil = null, u.failedLoginAttempts = 0 WHERE u.email = :email")
     void unlockAccount(@Param("email") String email);
     
+    /**
+     * Finds a user by OAuth2 provider and provider ID.
+     * 
+     * Used to locate existing OAuth2 users during Google authentication flow.
+     * 
+     * @param provider The OAuth2 provider name (google)
+     * @param providerId The unique identifier from the OAuth2 provider
+     * @return Optional containing the user if found, empty otherwise
+     */
+    Optional<User> findByOauth2ProviderAndOauth2ProviderId(String provider, String providerId);
+    
 }

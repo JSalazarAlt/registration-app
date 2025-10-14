@@ -41,6 +41,8 @@ public interface UserMapper {
     @Mapping(target = "failedLoginAttempts", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "oauth2Provider", ignore = true)
+    @Mapping(target = "oauth2ProviderId", ignore = true)
     User toEntity(UserRegistrationDTO userRegistrationDTO);
 
     @Mapping(target = "id", ignore = true)
@@ -58,6 +60,8 @@ public interface UserMapper {
     @Mapping(target = "failedLoginAttempts", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "oauth2Provider", ignore = true)
+    @Mapping(target = "oauth2ProviderId", ignore = true)
     User toEntity(UserUpdateDTO userUpdateDTO);
 
     UserProfileDTO toProfileDTO(User user);
