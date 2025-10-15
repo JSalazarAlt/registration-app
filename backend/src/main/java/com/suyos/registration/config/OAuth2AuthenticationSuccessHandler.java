@@ -2,6 +2,7 @@ package com.suyos.registration.config;
 
 import java.io.IOException;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -13,7 +14,6 @@ import com.suyos.registration.service.AuthService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -25,12 +25,15 @@ import lombok.extern.slf4j.Slf4j;
  * @author Joel Salazar
  */
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     /** Service for authentication operations */
     private final AuthService authService;
+    
+    public OAuth2AuthenticationSuccessHandler(@Lazy AuthService authService) {
+        this.authService = authService;
+    }
 
     /**
      * Processes successful Google OAuth2 authentication.
@@ -57,9 +60,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             var authResponse = authService.processGoogleOAuth2User(email, name, providerId);
             String token = authResponse.getAccessToken();
             
-            // Redirect to frontend with token
+            // Redirect to frontend with token and user data
             String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/oauth2/redirect")
                     .queryParam("token", token)
+                    .queryParam("firstName", authResponse.getUser().getFirstName())
+                    .queryParam("lastName", authResponse.getUser().getLastName())
+                    .queryParam("email", authResponse.getUser().getEmail())
+                    .queryParam("userId", authResponse.getUser().getId())
                     .build().toUriString();
             
             getRedirectStrategy().sendRedirect(request, response, targetUrl);

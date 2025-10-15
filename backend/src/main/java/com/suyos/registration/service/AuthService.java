@@ -131,9 +131,27 @@ public class AuthService {
      * @return authentication response with JWT token and user profile
      */
     public AuthenticationResponseDTO processGoogleOAuth2User(String email, String name, String providerId) {
-        // Find existing Google OAuth2 user or create new one
-        User user = userRepository.findByOauth2ProviderAndOauth2ProviderId("google", providerId)
-                .orElseGet(() -> createGoogleOAuth2User(email, name, providerId));
+        // First check if user exists by OAuth2 provider and ID
+        Optional<User> oauth2User = userRepository.findByOauth2ProviderAndOauth2ProviderId("google", providerId);
+        
+        User user;
+        if (oauth2User.isPresent()) {
+            user = oauth2User.get();
+        } else {
+            // Check if user exists by email (traditional registration)
+            Optional<User> existingUser = userRepository.findByEmail(email);
+            if (existingUser.isPresent()) {
+                // Link existing account with Google OAuth2
+                user = existingUser.get();
+                user.setOauth2Provider("google");
+                user.setOauth2ProviderId(providerId);
+                user.setEmailVerified(true); // Google emails are verified
+                userRepository.save(user);
+            } else {
+                // Create new user
+                user = createGoogleOAuth2User(email, name, providerId);
+            }
+        }
         
         // Update last login time
         user.setLastLoginAt(LocalDateTime.now());
@@ -182,7 +200,6 @@ public class AuthService {
                 .failedLoginAttempts(0)
                 .termsAcceptedAt(LocalDateTime.now())
                 .privacyPolicyAcceptedAt(LocalDateTime.now())
-                .createdAt(LocalDateTime.now())
                 .build();
         
         return userRepository.save(user);

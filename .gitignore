@@ -17,3 +17,20 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+*.properties.local
+application-secrets.properties
+
+# Database
+*.db
+*.sqlite
+
+# Build artifacts
+target/
+build/
+dist/
+node_modules/

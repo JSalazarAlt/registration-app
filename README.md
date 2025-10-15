@@ -45,6 +45,16 @@ A full-stack authentication application built with React and Spring Boot, featur
 
 ## 🔧 Installation & Setup
 
+### Environment Variables Setup
+1. Copy `.env.example` to `.env` in the backend directory
+2. Fill in your actual OAuth2 credentials:
+   ```bash
+   GOOGLE_CLIENT_ID=your-actual-client-id
+   GOOGLE_CLIENT_SECRET=your-actual-client-secret
+   JWT_SECRET=your-jwt-secret-key
+   ```
+3. Get Google OAuth2 credentials from [Google Cloud Console](https://console.cloud.google.com/)
+
 ### Database Setup
 ```sql
 CREATE DATABASE registration_app;

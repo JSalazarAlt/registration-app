@@ -5,6 +5,7 @@ import Register from './components/Register'
 import Home from './components/Home'
 import Profile from './components/Profile'
 import Navbar from './components/Navbar'
+import OAuth2Redirect from './components/OAuth2Redirect'
 import './App.css'
 import { authAPI } from './services/api'
 
@@ -99,6 +100,7 @@ function App() {
                 <Routes>
                     <Route path="/login" element={<Login onLoginSuccess={handleAuthSuccess} />} />
                     <Route path="/register" element={<Register onRegisterSuccess={handleAuthSuccess} />} />
+                    <Route path="/oauth2/redirect" element={<OAuth2Redirect onLoginSuccess={handleAuthSuccess} />} />
                     <Route path="*" element={<Navigate to="/login" replace />} />
                 </Routes>
             ) : (

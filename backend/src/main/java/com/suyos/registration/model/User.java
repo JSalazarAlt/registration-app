@@ -2,8 +2,13 @@ package com.suyos.registration.model;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -23,6 +28,7 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "users")
+@EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -117,10 +123,12 @@ public class User {
     private int failedLoginAttempts = 0;
     
     /** Timestamp when the user record was first created in the system */
+    @CreatedDate
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     /** Timestamp when the user record was last modified */
+    @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
