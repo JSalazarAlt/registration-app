@@ -27,7 +27,11 @@ import lombok.NoArgsConstructor;
  * @author Joel Salazar
  */
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+    @jakarta.persistence.Index(name = "idx_user_email", columnList = "email"),
+    @jakarta.persistence.Index(name = "idx_user_username", columnList = "username"),
+    @jakarta.persistence.Index(name = "idx_user_oauth2", columnList = "oauth2_provider, oauth2_provider_id")
+})
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor

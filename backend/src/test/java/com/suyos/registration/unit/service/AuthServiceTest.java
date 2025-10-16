@@ -26,6 +26,8 @@ import com.suyos.registration.repository.UserRepository;
 import com.suyos.registration.service.AuthService;
 import com.suyos.registration.service.JwtService;
 import com.suyos.registration.service.LoginAttemptService;
+import com.suyos.registration.service.SecurityAuditService;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Unit tests for AuthService.
@@ -58,6 +60,14 @@ class AuthServiceTest {
     /** Mock JWT service for token generation and validation */
     @Mock
     private JwtService jwtService;
+    
+    /** Mock security audit service for logging security events */
+    @Mock
+    private SecurityAuditService securityAuditService;
+    
+    /** Mock HTTP servlet request for audit logging */
+    @Mock
+    private HttpServletRequest mockRequest;
     
     /** AuthService instance under test with injected mocks */
     @InjectMocks
@@ -121,7 +131,7 @@ class AuthServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userMapper.toProfileDTO(user)).thenReturn(profileDTO);
 
-        UserProfileDTO result = authService.registerUser(registrationDTO);
+        UserProfileDTO result = authService.registerUser(registrationDTO, mockRequest);
 
         assertNotNull(result);
         assertEquals(profileDTO.getEmail(), result.getEmail());
@@ -134,7 +144,7 @@ class AuthServiceTest {
         when(userRepository.existsByEmail(registrationDTO.getEmail())).thenReturn(true);
 
         RuntimeException exception = assertThrows(RuntimeException.class, 
-            () -> authService.registerUser(registrationDTO));
+            () -> authService.registerUser(registrationDTO, mockRequest));
 
         assertEquals("Email already registered", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
@@ -149,7 +159,7 @@ class AuthServiceTest {
         when(jwtService.generateToken(any(UserDetails.class))).thenReturn("jwt-token");
         when(jwtService.getExpirationTime()).thenReturn(86400L);
 
-        AuthenticationResponseDTO result = authService.authenticateUser(loginDTO);
+        AuthenticationResponseDTO result = authService.authenticateUser(loginDTO, mockRequest);
 
         assertNotNull(result);
         assertEquals("jwt-token", result.getAccessToken());
@@ -163,7 +173,7 @@ class AuthServiceTest {
         when(userRepository.findActiveUserByEmail(loginDTO.getEmail())).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class, 
-            () -> authService.authenticateUser(loginDTO));
+            () -> authService.authenticateUser(loginDTO, mockRequest));
 
         assertEquals("Invalid email or password", exception.getMessage());
     }
@@ -175,7 +185,7 @@ class AuthServiceTest {
         when(userRepository.findActiveUserByEmail(loginDTO.getEmail())).thenReturn(Optional.of(user));
 
         RuntimeException exception = assertThrows(RuntimeException.class, 
-            () -> authService.authenticateUser(loginDTO));
+            () -> authService.authenticateUser(loginDTO, mockRequest));
 
         assertEquals("Account is locked. Try again later.", exception.getMessage());
     }
@@ -186,7 +196,7 @@ class AuthServiceTest {
         when(passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())).thenReturn(false);
 
         RuntimeException exception = assertThrows(RuntimeException.class, 
-            () -> authService.authenticateUser(loginDTO));
+            () -> authService.authenticateUser(loginDTO, mockRequest));
 
         assertEquals("Invalid email or password", exception.getMessage());
         verify(loginAttemptService).recordFailedAttempt(user);

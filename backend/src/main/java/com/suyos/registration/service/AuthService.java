@@ -44,6 +44,9 @@ public class AuthService {
     
     /** JWT service for token generation and validation */
     private final JwtService jwtService;
+    
+    /** Security audit service for logging security events */
+    private final SecurityAuditService securityAuditService;
 
     /**
      * Registers a new user account.
@@ -52,7 +55,7 @@ public class AuthService {
      * @return the created user's profile information
      * @throws RuntimeException if email already exists
      */
-    public UserProfileDTO registerUser(UserRegistrationDTO userRegistrationDTO) {
+    public UserProfileDTO registerUser(UserRegistrationDTO userRegistrationDTO, jakarta.servlet.http.HttpServletRequest request) {
         if (userRepository.existsByEmail(userRegistrationDTO.getEmail())) {
             throw new RuntimeException("Email already registered");
         }
@@ -68,6 +71,14 @@ public class AuthService {
         
         User savedUser = userRepository.save(user);
         
+        // Log registration event
+        securityAuditService.logRegistration(
+            savedUser.getUsername(), 
+            savedUser.getEmail(),
+            securityAuditService.getClientIp(request),
+            securityAuditService.getUserAgent(request)
+        );
+        
         return userMapper.toProfileDTO(savedUser);
     }
 
@@ -78,7 +89,7 @@ public class AuthService {
      * @return authentication response with JWT token and user profile
      * @throws RuntimeException if authentication fails
      */
-    public AuthenticationResponseDTO authenticateUser(UserLoginDTO userLoginDTO) {
+    public AuthenticationResponseDTO authenticateUser(UserLoginDTO userLoginDTO, jakarta.servlet.http.HttpServletRequest request) {
         Optional<User> userOpt = userRepository.findActiveUserByEmail(userLoginDTO.getEmail());
         
         if (userOpt.isEmpty()) {
@@ -94,6 +105,12 @@ public class AuthService {
         
         if (!passwordEncoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
             loginAttemptService.recordFailedAttempt(user);
+            securityAuditService.logLoginAttempt(
+                userLoginDTO.getEmail(),
+                securityAuditService.getClientIp(request),
+                securityAuditService.getUserAgent(request),
+                false
+            );
             throw new RuntimeException("Invalid email or password");
         }
         
@@ -111,6 +128,14 @@ public class AuthService {
                 .build();
         
         String jwtToken = jwtService.generateToken(userDetails);
+        
+        // Log successful login
+        securityAuditService.logLoginAttempt(
+            user.getEmail(),
+            securityAuditService.getClientIp(request),
+            securityAuditService.getUserAgent(request),
+            true
+        );
         
         return AuthenticationResponseDTO.builder()
                 .accessToken(jwtToken)
@@ -204,4 +229,5 @@ public class AuthService {
         
         return userRepository.save(user);
     }
+    
 }

@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -54,8 +55,9 @@ public class AuthController {
         @ApiResponse(responseCode = "201", description = "User registered successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid registration data or email already exists")
     })
-    public ResponseEntity<UserProfileDTO> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
-        UserProfileDTO userProfile = authService.registerUser(registrationDTO);
+    public ResponseEntity<UserProfileDTO> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO,
+                                                      HttpServletRequest request) {
+        UserProfileDTO userProfile = authService.registerUser(registrationDTO, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(userProfile);
     }
 
@@ -71,8 +73,9 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Login successful, JWT token returned"),
         @ApiResponse(responseCode = "401", description = "Invalid credentials or account locked")
     })
-    public ResponseEntity<AuthenticationResponseDTO> loginUser(@Valid @RequestBody UserLoginDTO loginDTO) {
-        AuthenticationResponseDTO authResponse = authService.authenticateUser(loginDTO);
+    public ResponseEntity<AuthenticationResponseDTO> loginUser(@Valid @RequestBody UserLoginDTO loginDTO,
+                                                              HttpServletRequest request) {
+        AuthenticationResponseDTO authResponse = authService.authenticateUser(loginDTO, request);
         return ResponseEntity.ok(authResponse);
     }
 
@@ -88,7 +91,7 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Logout successful"),
         @ApiResponse(responseCode = "400", description = "Invalid or missing token")
     })
-    public ResponseEntity<String> logoutUser(jakarta.servlet.http.HttpServletRequest request) {
+    public ResponseEntity<String> logoutUser(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);

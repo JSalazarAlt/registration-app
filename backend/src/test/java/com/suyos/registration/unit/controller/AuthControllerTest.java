@@ -99,7 +99,7 @@ class AuthControllerTest {
 
     @Test
     void registerUser_Success() throws Exception {
-        when(authService.registerUser(any(UserRegistrationDTO.class))).thenReturn(profileDTO);
+        when(authService.registerUser(any(UserRegistrationDTO.class), any())).thenReturn(profileDTO);
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -108,12 +108,12 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.username").value("testuser"));
 
-        verify(authService).registerUser(any(UserRegistrationDTO.class));
+        verify(authService).registerUser(any(UserRegistrationDTO.class), any());
     }
 
     @Test
     void registerUser_EmailAlreadyExists() throws Exception {
-        when(authService.registerUser(any(UserRegistrationDTO.class)))
+        when(authService.registerUser(any(UserRegistrationDTO.class), any()))
                 .thenThrow(new RuntimeException("Email already registered"));
 
         mockMvc.perform(post("/api/v1/auth/register")
@@ -125,7 +125,7 @@ class AuthControllerTest {
 
     @Test
     void loginUser_Success() throws Exception {
-        when(authService.authenticateUser(any(UserLoginDTO.class))).thenReturn(authResponseDTO);
+        when(authService.authenticateUser(any(UserLoginDTO.class), any())).thenReturn(authResponseDTO);
 
         mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -135,12 +135,12 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.expiresIn").value(86400))
                 .andExpect(jsonPath("$.user.email").value("test@example.com"));
 
-        verify(authService).authenticateUser(any(UserLoginDTO.class));
+        verify(authService).authenticateUser(any(UserLoginDTO.class), any());
     }
 
     @Test
     void loginUser_InvalidCredentials() throws Exception {
-        when(authService.authenticateUser(any(UserLoginDTO.class)))
+        when(authService.authenticateUser(any(UserLoginDTO.class), any()))
                 .thenThrow(new RuntimeException("Invalid email or password"));
 
         mockMvc.perform(post("/api/v1/auth/login")

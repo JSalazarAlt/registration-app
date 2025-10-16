@@ -74,4 +74,5 @@ public class TokenBlacklistService {
         });
         log.debug("Cleaned up expired blacklisted tokens");
     }
+    
 }
