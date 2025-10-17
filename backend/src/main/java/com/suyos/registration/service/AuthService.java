@@ -49,7 +49,7 @@ public class AuthService {
     private final SecurityAuditService securityAuditService;
 
     /**
-     * Registers a new user account.
+     * Registers a new user account. asdasdasd
      * 
      * @param registrationDTO the registration information
      * @return the created user's profile information
