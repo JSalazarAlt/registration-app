@@ -3,6 +3,7 @@ package com.suyos.registration.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -46,22 +47,55 @@ public class SecurityConfig {
     private final RateLimitingFilter rateLimitingFilter;
 
     /**
-     * Configures the main security rules for the application.
+     * Configures the main security rules and authentication mechanisms 
+     * for the application.
+     *
+     * <p><b>Behavior:</b></p>
+     * <ol>
+     *   <li>Disables CSRF protection for stateless API requests authenticated 
+     *       via JWT.</li>
+     *   <li>Enables CORS using the predefined configuration from 
+     *       {@code corsConfigurationSource()}.</li>
+     *   <li>Configures security-related HTTP headers, including frame options, 
+     *       content type handling, and HTTP Strict Transport Security (HSTS).</li>
+     *   <li>Defines authorization rules:
+     *     <ul>
+     *       <li>Public endpoints: registration, login, and OAuth2 routes.</li>
+     *       <li>Protected endpoints: all other requests require authentication.</li>
+     *     </ul>
+     *   </li>
+     *   <li>Sets session management to <b>stateless</b>, ensuring no HTTP session 
+     *       persistence for JWT-based authentication.</li>
+     *   <li>Configures OAuth2 login flow, specifying authorization and 
+     *       redirection endpoints, and a custom success handler.</li>
+     *   <li>Registers custom filters:
+     *     <ul>
+     *       <li>{@code rateLimitingFilter} — applied before authentication to 
+     *           throttle excessive requests.</li>
+     *       <li>{@code jwtAuthFilter} — validates and processes JWT tokens for 
+     *           authentication.</li>
+     *     </ul>
+     *   </li>
+     * </ol>
+     *
+     * <p><b>Purpose:</b></p>
+     * <ul>
+     *   <li>Enforces consistent security policies across the API while supporting 
+     *       both JWT and OAuth2 authentication methods.</li>
+     *   <li>Separates public and protected routes to control access and prevent 
+     *       unauthorized use of sensitive endpoints.</li>
+     *   <li>Ensures the API operates securely in a stateless manner, suitable for 
+     *       modern REST and microservice architectures.</li>
+     *   <li>Integrates essential security layers — CORS, headers, rate limiting, 
+     *       and authentication filters — into a unified filter chain.</li>
+     * </ul>
+     *
+     * <hr>
      * 
-     * Supports both traditional JWT authentication and Google OAuth2 authentication.
-     * 
-     * Purpose: (1) Sets up which endpoints require authentication and which are
-     *              public.
-     *          (2) Configures security features like CSRF, CORS, and HTTP headers.
-     *          (3) Specifies session management (stateless for JWT).
-     *          (4) Integrates custom filters (rate limiting, JWT authentication).
-     *          (5) Sets up OAuth2 login handling.
-     * 
-     * @param http the HttpSecurity to configure
-     * @return the configured SecurityFilterChain
-     * @throws Exception if configuration fails
+     * @param http the {@link HttpSecurity} to configure
+     * @return the configured {@link SecurityFilterChain}
+     * @throws Exception if a configuration error occurs
      */
-    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -108,14 +142,28 @@ public class SecurityConfig {
     }
 
     /**
-     * Configures CORS settings. Cross-Origin Resource Sharing (CORS) is a 
-     * security feature that restricts webpages from making requests to a 
-     * different domain than the one that served the webpage.
+     * Configures Cross-Origin Resource Sharing (CORS) settings.
+     *
+     * <p><b>Behavior:</b></p>
+     * <ol>
+     *   <li>Defines a {@link CorsConfiguration} that specifies which origins,
+     *       HTTP methods, and headers are allowed to access the application's 
+     *       resources.</li>
+     *   <li>Registers this configuration with a {@link UrlBasedCorsConfigurationSource},
+     *       applying it to all request paths (<code>/**</code>).</li>
+     * </ol>
+     *
+     * <p><b>Purpose:</b></p>
+     * <ul>
+     *   <li>Allows controlled access from the frontend (e.g., <code>http://localhost:5173</code>)
+     *       to backend APIs hosted on a different origin.</li>
+     *   <li>Prevents unauthorized or malicious domains from reading or modifying
+     *       sensitive resources via cross-origin requests.</li>
+     * </ul>
+     *
+     * <hr>
      * 
-     * Purpose: (1) Prevents malicious sites from reading sensitive data from 
-     *              another site via the browser.
-     * 
-     * @return the CORS configuration source
+     * @return the configured {@link CorsConfigurationSource}
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -135,22 +183,33 @@ public class SecurityConfig {
     }
 
     /**
-     * Configures the authentication manager. 
-     * (1) Exposes the authentication manager as a Spring bean allowing 
-     *     other components to inject and use it.
-     * (2) Retrieves the default authentication manager from the Spring Security
-     *     context, which is configured based on our authentication providers 
-     *     (e.g., password encoder, user details service).
-     * 
-     * Purpose: (1) Central interface for authenticating user credentials.
-     *          (2) Takes an Authentication object containing user credentials
-     *              (e.g., UsernamePasswordAuthenticationToken), checks the
-     *              credentials against the configured user details service and
-     *              returns an authenticated Authentication object if successful.
+     * Configures the authentication manager.
+     *
+     * <p><b>Behavior:</b></p>
+     * <ol>
+     *   <li>Exposes the {@link AuthenticationManager} as a Spring bean, allowing 
+     *       other components to inject and use it for authentication operations.</li>
+     *   <li>Obtains the default {@link AuthenticationManager} from the provided
+     *       {@link AuthenticationConfiguration}, which builds it based on the 
+     *       application's configured authentication providers (e.g., user details 
+     *       service, password encoder).</li>
+     * </ol>
+     *
+     * <p><b>Purpose:</b></p>
+     * <ul>
+     *   <li>Acts as the central entry point for verifying user credentials within 
+     *       the application.</li>
+     *   <li>Processes an {@link Authentication} request (e.g., {@link UsernamePasswordAuthenticationToken}),
+     *       delegates verification to the configured user details service, and 
+     *       returns an authenticated {@link Authentication} instance if credentials 
+     *       are valid.</li>
+     * </ul>
+     *
+     * <hr>
      * 
      * @param config the authentication configuration
-     * @return the authentication manager
-     * @throws Exception if configuration fails
+     * @return the configured authentication manager
+     * @throws Exception if the authentication manager cannot be created
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
