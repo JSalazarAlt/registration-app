@@ -36,12 +36,37 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     }
 
     /**
-     * Processes successful Google OAuth2 authentication.
-     * 
+     * Handles successful Google OAuth2 authentication and redirects the user 
+     * to the frontend with a generated access token.
+     *
+     * <p><b>Behavior:</b></p>
+     * <ol>
+     *   <li>Extracts user information (email, name, provider ID) from the 
+     *       {@link OAuth2User} principal.</li>
+     *   <li>Processes the authenticated user through 
+     *       {@code authService.processGoogleOAuth2User()} to generate an access token.</li>
+     *   <li>Builds a redirect URL including token and basic user details.</li>
+     *   <li>Redirects the user to the frontend’s OAuth2 callback endpoint.</li>
+     *   <li>Logs and redirects to the login page with an error flag if any 
+     *       exception occurs.</li>
+     * </ol>
+     *
+     * <p><b>Purpose:</b></p>
+     * <ul>
+     *   <li>Completes the Google OAuth2 login flow after successful authentication.</li>
+     *   <li>Transfers user data and token securely to the frontend for session 
+     *       initialization.</li>
+     *   <li>Ensures proper error handling and user feedback on authentication 
+     *       failure.</li>
+     * </ul>
+     *
+     * <hr>
+     *
      * @param request the HTTP request
      * @param response the HTTP response
-     * @param authentication the authentication object containing OAuth2 user info
-     * @throws IOException if I/O operation fails
+     * @param authentication the authenticated {@link Authentication} containing 
+     *        OAuth2 user details
+     * @throws IOException if an I/O operation fails
      * @throws ServletException if servlet processing fails
      */
     @Override
@@ -76,4 +101,5 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             getRedirectStrategy().sendRedirect(request, response, "http://localhost:5173/login?error=oauth2_failed");
         }
     }
+
 }
